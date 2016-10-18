@@ -88,6 +88,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
     var route: Route? = null
     var mainPresenter: MainPresenter? = null
     var voiceNavigationController: VoiceNavigationController? = null
+    var arNavigationController: ARNavigationController? = null
     var notificationCreator: NotificationCreator? = null
     @Inject lateinit var routePresenter: RoutePresenter
     @Inject lateinit var settings: AppSettings
@@ -105,7 +106,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
     }
 
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int)
-            : super(context, attrs, defStyleAttr) {
+    : super(context, attrs, defStyleAttr) {
         init(context)
     }
 
@@ -290,7 +291,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
             // Find the view that will place the current location marker in the lower quarter
             // of the window.
             val nextPosition = mapzenMap?.screenPositionToLngLat(PointF(screenWidth / 2,
-                screenHeight / 3.5f)) ?: LngLat()
+                    screenHeight / 3.5f)) ?: LngLat()
             val nextRotation = getBearingInRadians(location)
 
             // Return to our initial view to prepare for easing to the next view
@@ -343,6 +344,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
         val instruction = route?.getRouteInstructions()?.get(0)
         if (instruction is Instruction) {
             voiceNavigationController?.playStart(instruction)
+            arNavigationController?.playStart(instruction)
         }
     }
 
@@ -351,6 +353,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
         val finalInstructionIndex = route?.getRouteInstructions()?.size?.minus(1)
         if (instruction is Instruction && index != finalInstructionIndex) {
             voiceNavigationController?.playPre(instruction)
+            arNavigationController?.playPre(instruction)
         }
     }
 
@@ -363,6 +366,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
         val instruction = route?.getRouteInstructions()?.get(index)
         if (instruction is Instruction) {
             voiceNavigationController?.playPost(instruction)
+            arNavigationController?.playPost(instruction)
             val adapter = instructionPager.adapter
             if (adapter is InstructionAdapter) {
                 adapter.setPostText(findViewByIndex(index), instruction)
@@ -401,6 +405,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
         val finalInstructionIndex = route?.getRouteInstructions()?.size?.minus(1) ?: 0
         val finalInstruction = route?.getRouteInstructions()?.get(finalInstructionIndex)
         if (finalInstruction is Instruction) voiceNavigationController?.playPre(finalInstruction)
+        if (finalInstruction is Instruction) arNavigationController?.playPre(finalInstruction)
     }
 
     override fun showReroute(location: ValhallaLocation) {
@@ -496,7 +501,7 @@ class RouteModeView : LinearLayout, RouteViewController, ViewPager.OnPageChangeL
                             stationPoints.add(LngLat(lastStop.getLon(), lastStop.getLat()))
                         }
                         mapzenMap?.drawTransitRouteLine(points, stationPoints,
-                            instruction.getTransitInfoColorHex() as String)
+                                instruction.getTransitInfoColorHex() as String)
                     }
                 }
             }
